@@ -66,11 +66,5 @@
 
         <sourceDirectory> ${basedir}/src</sourceDirectory>
 
-        <!--
-        <resources>
-            <resource>
-                <directory>src/main/db/</directory>
-            </resource>
-        </resources> -->
     </build>
 </project>

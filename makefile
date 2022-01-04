@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := all
-.PHONY: all clean
+.PHONY: all clean dir
 
 SRC_DIR := src
 OUT_DIR := target
@@ -13,11 +13,17 @@ SERVER_FILES := $(shell find $(SERVER_SRC) -name *.java)
 CLIENT_JAR := $(OUT_DIR)/Client.jar
 SERVER_JAR := $(OUT_DIR)/Server.jar
 
+APP_DATA_DIR := $${HOME}/Documents/SD-TP-app-data
+
 
 
 all:
+	@make dir
 	@make $(SERVER_JAR)
 	@make $(CLIENT_JAR)
+
+dir:
+	@mkdir -p $(APP_DATA_DIR)
 
 $(SERVER_JAR): $(SERVER_FILES)
 	@cat build_server > pom.xml
