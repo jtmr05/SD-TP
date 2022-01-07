@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.net.Socket;
 
 import common.Consts;
-import common.Menu;
 import server.users.UsersManager;
+import utils.Menu;
 import server.users.User;
 import server.users.UserType;
 
@@ -33,8 +33,8 @@ public class ClientHandler implements Runnable {
             User u = null;
             Menu m;
             do{
-                if(this.in.readInt() != Consts.LOGIN_REQUEST)
-                    this.in.readAllBytes();
+                //if(this.in.readInt() != Consts.LOGIN_REQUEST)
+                //    this.in.readAllBytes();
 
                 String username, password;
                 username = this.in.readUTF();
@@ -43,17 +43,17 @@ public class ClientHandler implements Runnable {
                 u = this.registeredUsers.login(username, password);
 
                 if(u == null)
-                    this.out.writeInt(Consts.LOGIN_FAIL);
-                else{
+                    //this.out.writeInt(Consts.LOGIN_FAIL);
+                //else{
                     if(u.getType() == UserType.ADMIN)
                         m = new Menu("*** Admin Menu ***", new String[]{"Login"});
                     else
                         m = new Menu(new String[]{"Make a reservation"});
 
-                    this.out.writeInt(Consts.MENU);
-                    m.serialize(this.out);
+                    //this.out.writeInt(Consts.MENU);
+                    //m.serialize(this.out);
                     this.out.flush();
-                }
+                //}
             }
             while(u == null);
 

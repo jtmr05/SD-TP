@@ -1,8 +1,6 @@
-package common;
+package utils;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -32,7 +30,6 @@ public class Menu {
         Iterator<String> iter = options.iterator();
         for(int i = 0; i < this.options.length && iter.hasNext(); i++)
             this.options[i] = iter.next();
-
     }
 
     public Menu(Collection<String> options){
@@ -72,19 +69,34 @@ public class Menu {
         return this.readOption();
     }
 
-    public void serialize(DataOutputStream out) throws IOException {
-        out.writeUTF(this.title);
-        out.writeInt(this.options.length);
-        for(String op : this.options)
-            out.writeUTF(op);
-    }
+    public static Menu deserialize(byte[] data){
 
-    public static Menu deserialize(DataInputStream in) throws IOException {
-        String title = in.readUTF();
-        String[] options = new String[in.readInt()];
-        for(int i = 0; i < options.length; i++)
-            options[i] = in.readUTF();
+        String[] args = new String(data, StandardCharsets.UTF_8).split("\0", 2),
+                 options = new String[0];
+        String title = args[0];
+
+        if(args.length > 1)
+            options = args[1].split("\0");
 
         return new Menu(title, options);
+    }
+
+    public static Menu deserialize(String s){
+
+        String[] args = s.split("\0", 2),
+                 options = new String[0];
+        String title = args[0];
+
+        if(args.length > 1)
+            options = args[1].split("\0");
+
+        return new Menu(title, options);
+    }
+
+    public String getAsString(){
+        StringBuilder sb = new StringBuilder(this.title);
+        for(String s : this.options)
+            sb.append("\0").append(s);
+        return sb.toString();
     }
 }
