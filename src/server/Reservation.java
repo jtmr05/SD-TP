@@ -39,4 +39,8 @@ public class Reservation {
         return reservationID;
     }
 
+    public LocalDate getReservationDate() {
+        return reservationDate;
+    }
+
 }

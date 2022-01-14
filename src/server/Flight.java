@@ -41,6 +41,7 @@ class Flight {
 
         return b;
     }
+
 }
 
 /*
