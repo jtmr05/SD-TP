@@ -21,6 +21,7 @@ public final class Consts {
 
         MAKE,
         CANCEL,
+        GET,
         NEW,
         CLOSE,
         QUIT;
@@ -31,3 +32,19 @@ public final class Consts {
         ADMIN;
     }
 }
+
+/**
+ * LOGIN_REQUEST + username + '\0' + password            //client
+ * LOGIN_FAIL + err_msg                                  //server
+ * LOGIN_SUCESS + sessionId                              //server
+ *
+ * ===//===
+ *
+ * USER_TYPE + usertype                                  //server
+ * FLIGHTS_LIST + flight1 + '\0' + flight2 + ...         //server
+ * NOTIF + message                                       //server
+ *
+ * MAKE, CANCEL, CLOSE, NEW + '\0' + string              //client
+ *
+ * QUIT + client_id                                      //client
+ */

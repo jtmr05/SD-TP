@@ -21,7 +21,7 @@ public class UsersManager {
     private Lock lock;
 
     static{
-        OBJ_STREAM_PATH = System.getenv("HOME") + "/Documents/SD-TP-app-data/object";
+        OBJ_STREAM_PATH = System.getenv("HOME") + "/Documents/SD-TP-app-data/users";
     }
 
     private UsersManager(){

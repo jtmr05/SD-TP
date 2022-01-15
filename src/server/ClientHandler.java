@@ -4,58 +4,77 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Random;
+import java.util.Set;
 
 import common.Consts;
+import common.Frame;
+import common.TaggedConnection;
+import common.Consts.MessageType;
+
 import static common.Consts.UserType;
 import server.users.UsersManager;
-import utils.Menu;
 import server.users.User;
 
 
-public class ClientHandler implements Runnable {
+class ClientHandler implements Runnable {
 
-    private final Socket socket;
-    private final DataInputStream in;
-    private final DataOutputStream out;
+    private final TaggedConnection tc;
     private final UsersManager registeredUsers;
+    private final FlightsCatalog flightsCatalog;
+    private final ReservationCatalog reservationCatalog;
+    private String sessionId;
 
-    ClientHandler(Socket s, UsersManager users) throws IOException {
-        this.socket = s;
+
+    ClientHandler(Socket s, UsersManager users, FlightsCatalog flights, ReservationCatalog r) throws IOException {
+        this.tc = new TaggedConnection(s);
         this.registeredUsers = users;
-        this.in = new DataInputStream(this.socket.getInputStream());
-        this.out = new DataOutputStream(this.socket.getOutputStream());
+        this.sessionId = null;
+        this.flightsCatalog = flights;
+        this.reservationCatalog = r;
     }
 
     @Override
     public void run(){
 
         try{
-            User u = null;
-            Menu m;
-            do{
-                //if(this.in.readInt() != Consts.LOGIN_REQUEST)
-                //    this.in.readAllBytes();
 
-                String username, password;
-                username = this.in.readUTF();
-                password = this.in.readUTF();
 
-                u = this.registeredUsers.login(username, password);
+            boolean loggedIn = false;
 
-                if(u == null)
-                    //this.out.writeInt(Consts.LOGIN_FAIL);
-                //else{
-                    if(u.getType() == UserType.ADMIN)
-                        m = new Menu("*** Admin Menu ***", new String[]{"Login"});
-                    else
-                        m = new Menu(new String[]{"Make a reservation"});
+            while(!loggedIn){
 
-                    //this.out.writeInt(Consts.MENU);
-                    //m.serialize(this.out);
-                    this.out.flush();
-                //}
+                Frame f = this.tc.receive();
+
+                if(f.tag == MessageType.LOGIN_REQUEST){
+                    String[] credentials = f.getDataAsString().split("\0");
+                    User u = this.registeredUsers.login(credentials[0], credentials[1]);
+
+                    loggedIn = u != null;
+
+                    if(!loggedIn)
+                        this.tc.send(MessageType.LOGIN_FAIL, "Incorrect credentials");
+                    else{
+                        this.sessionId = System.currentTimeMillis() + "";
+                        this.tc.send(MessageType.LOGIN_SUCESS, this.sessionId);
+                        this.tc.send(MessageType.USER_TYPE, u.getType().toString());
+
+                    }
+                }
             }
-            while(u == null);
+
+            while(loggedIn){
+
+                Frame f = this.tc.receive();
+
+                switch(f.tag){
+
+                    case
+                }
+            }
+
+
+
 
         }
         catch (IOException e){

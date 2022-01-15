@@ -28,6 +28,7 @@ public class ClientController{
     private final Lock flightsLock;
     private final Lock loginLock;
     private final Condition loginCond;
+    private final Condition flightsCond;
 
 
     class ClientReceiver implements Runnable {
@@ -60,6 +61,8 @@ public class ClientController{
                             flights.clear();
                             for(String s : flights__)
                                 flights.add(s);
+
+                            flightsCond.signal();
 
                             flightsLock.unlock();
                         }
@@ -105,6 +108,7 @@ public class ClientController{
         this.flightsLock = new ReentrantLock();
         this.loginLock = new ReentrantLock();
         this.loginCond = this.loginLock.newCondition();
+        this.flightsCond = this.flightsLock.newCondition();
         (this.receiver = new Thread(new ClientReceiver(tc))).start();
     }
 
@@ -178,6 +182,17 @@ public class ClientController{
     public void getFlightsList(){
         this.flightsLock.lock();
 
+        this.flights.clear();
+        this.wr.addToSendQueue(MessageType.GET, this.clientId);
+
+        while(this.flights.size() == 0)
+            try {
+                this.flightsCond.await();
+            }
+            catch(InterruptedException e){
+                this.io.err(e.getMessage());
+            }
+
         this.io.showFlights(this.flights);
 
         this.flightsLock.unlock();
@@ -203,19 +218,3 @@ public class ClientController{
         this.wr.addToSendQueue(MessageType.CLOSE, this.clientId + "\0" + ld.toString());
     }
 }
-
-/**
- * LOGIN_REQUEST + username + '\0' + password            //cliente
- * LOGIN_FAIL + err_msg                                  //server
- * LOGIN_SUCESS + sessionId                              //server
- *
- * ===//===
- *
- * USER_TYPE + usertype                                  //server
- * FLIGHTS_LIST + flight1 + '\0' + flight2 + ...         //server
- * NOTIF + message                                       //server
- *
- * MAKE, CANCEL, CLOSE, NEW + '\0' + string
- *
- * QUIT + client_id                                      //client
- */
