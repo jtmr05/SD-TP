@@ -2,6 +2,8 @@ package server.users;
 
 import java.io.Serializable;
 
+import static common.Consts.UserType;
+
 public class User implements Serializable {
 
     private final String username;

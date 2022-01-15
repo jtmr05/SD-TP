@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.net.Socket;
 
 import common.Consts;
+import static common.Consts.UserType;
 import server.users.UsersManager;
 import utils.Menu;
 import server.users.User;
-import server.users.UserType;
 
 
 public class ClientHandler implements Runnable {

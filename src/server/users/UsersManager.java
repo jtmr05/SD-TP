@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static common.Consts.UserType;
+
 public class UsersManager {
 
     private static final String OBJ_STREAM_PATH;

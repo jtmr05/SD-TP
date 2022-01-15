@@ -42,6 +42,12 @@ class Flight {
         return b;
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder(this.src).append(" -> ").append(this.dst);
+        return sb.toString();
+    }
+
 }
 
 /*

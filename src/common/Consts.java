@@ -12,9 +12,22 @@ public final class Consts {
         LOGIN_REQUEST,
         LOGIN_FAIL,
         LOGIN_SUCESS,
-        MENU,
+
+
+        FLIGHTS_LIST,
+        USER_TYPE,
         NOTIF,
-        OPTION,
+
+
+        MAKE,
+        CANCEL,
+        NEW,
+        CLOSE,
         QUIT;
+    }
+
+    public enum UserType {
+        REGULAR,
+        ADMIN;
     }
 }
