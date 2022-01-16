@@ -2,7 +2,9 @@ package server;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -35,14 +37,25 @@ public class ReservationCatalog {
         this.lock.unlock();
     }
 
-    public void cancelDay(LocalDate date){
-        this.lock.lock();
-        for(Reservation r : this.reservationCatalog.values())
-            if(r.getReservationDate().equals(date)){
-                r.cancel(date);
-                this.reservationCatalog.remove(r.getReservationID());
+    public Set<Reservation> cancelDay(LocalDate date){
+
+        try{
+            this.lock.lock();
+
+            Set<Reservation> ret = new HashSet<>();
+
+            for(Map.Entry<Long, Reservation> entry : this.reservationCatalog.entrySet()){
+                var r = entry.getValue();
+                if(r.getReservationDate().equals(date)){
+                    r.cancel(date);
+                    ret.add(this.reservationCatalog.remove(entry.getKey()));
+                }
             }
-        this.lock.unlock();
+            return ret;
+        }
+        finally{
+            this.lock.unlock();
+        }
     }
 
     private static ReservationCatalog singleton = null;

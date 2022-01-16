@@ -144,7 +144,14 @@ class ClientHandler implements Runnable {
                     }
 
                     case CLOSE -> {
-                        this.reservationCatalog.cancelDay(LocalDate.parse(args[1], DateTimeFormatter.ISO_LOCAL_DATE));
+                        var set = this.reservationCatalog.
+                                  cancelDay(LocalDate.parse(args[1], DateTimeFormatter.ISO_LOCAL_DATE));
+
+                        for(Reservation r : set)
+                            if(r.getClientID().equals(this.sessionId))
+                                this.tc.send(MessageType.NOTIF,
+                                    "Reservation " + r.getReservationID() + " on day " +
+                                    r.getReservationDate() + " was cancelled");
                     }
 
                     case QUIT -> {
