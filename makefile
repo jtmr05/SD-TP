@@ -16,6 +16,8 @@ APP_DATA_DIR := $${HOME}/Documents/SD-TP-app-data
 all:
 	@make $(SERVER_JAR)
 	@make $(CLIENT_JAR)
+	@cp $(SERVER_JAR) $${HOME}/Documents
+	@cp $(CLIENT_JAR) $${HOME}/Documents
 
 install:
 	@mkdir -p $(APP_DATA_DIR)

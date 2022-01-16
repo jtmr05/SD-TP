@@ -35,13 +35,14 @@ class Reservation {
         this.lock.unlock();
     }
 
-    void addFlights(Flight... fs){
+    void addFlights(Object... fs){
         this.lock.lock();
         if (this.flights.size() == 0)
             this.flights = new ArrayList<>();
 
-        for(Flight f : fs)
-            this.flights.add(f);
+        for(Object f : fs)
+            if(f instanceof Flight)
+                this.flights.add((Flight) f);
 
         this.lock.unlock();
     }

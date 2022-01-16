@@ -8,12 +8,15 @@ import static common.Consts.UserType;
 
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 public class ClientController{
 
@@ -29,6 +32,8 @@ public class ClientController{
     private final Lock loginLock;
     private final Condition loginCond;
     private final Condition flightsCond;
+    private final Condition ioCond;
+    private boolean loginSleepFlag;
 
 
     class ClientReceiver implements Runnable {
@@ -50,6 +55,7 @@ public class ClientController{
                         case USER_TYPE -> {
                             ioLock.lock();
                             io.setMainMenu(UserType.valueOf(frame.getDataAsString()), ClientController.this);
+                            ioCond.signalAll();
                             ioLock.unlock();
                         }
 
@@ -76,14 +82,16 @@ public class ClientController{
                         case LOGIN_FAIL -> {
                             loginLock.lock();
                             io.err(frame.getDataAsString());
-                            loginCond.signal();
+                            loginSleepFlag = false;
+                            loginCond.signalAll();
                             loginLock.unlock();
                         }
 
                         case LOGIN_SUCESS -> {
                             loginLock.lock();
                             clientId = frame.getDataAsString();
-                            loginCond.signal();
+                            loginSleepFlag = false;
+                            loginCond.signalAll();
                             loginLock.unlock();
                         }
 
@@ -91,7 +99,10 @@ public class ClientController{
                     }
                 }
             }
-            catch(IOException e){}
+            catch(IOException e){
+                if(!(e instanceof SocketException))
+                    e.printStackTrace();
+            }
         }
     }
 
@@ -109,6 +120,8 @@ public class ClientController{
         this.loginLock = new ReentrantLock();
         this.loginCond = this.loginLock.newCondition();
         this.flightsCond = this.flightsLock.newCondition();
+        this.ioCond = this.ioLock.newCondition();
+        this.loginSleepFlag = true;
         (this.receiver = new Thread(new ClientReceiver(tc))).start();
     }
 
@@ -118,18 +131,26 @@ public class ClientController{
 
         boolean flag = true;
 
-        while(flag){
-            this.ioLock.lock();
+        this.ioLock.lock();
 
+        while(!this.io.isMenuAvailable())
+            try{
+                this.ioCond.await();
+            }
+            catch(InterruptedException e){
+                e.printStackTrace();
+            }
+        this.ioLock.unlock();
+
+        while(flag){
             int op = this.io.runMainMenu();
 
             if(op == 0){
                 flag = false;
                 this.wr.addToSendQueue(MessageType.QUIT, this.clientId);
+                this.io.leave();
                 this.receiver.interrupt();
             }
-
-            this.ioLock.unlock();
         }
     }
 
@@ -137,7 +158,10 @@ public class ClientController{
 
         try{
             this.loginLock.lock();
+
+
             while(this.clientId == null){
+                this.loginSleepFlag = true;
 
                 var credentials = this.io.login();
                 StringBuilder sb = new StringBuilder(credentials.getA()).
@@ -147,7 +171,7 @@ public class ClientController{
 
                 this.wr.addToSendQueue(MessageType.LOGIN_REQUEST, s);
 
-                while(this.clientId == null)
+                while(this.loginSleepFlag)
                     this.loginCond.await();
             }
             this.loginLock.unlock();
@@ -161,10 +185,16 @@ public class ClientController{
     public void makeReservation(){
         this.flightsLock.lock();
 
-        String flight = this.io.showAvailableCities(this.flights.
-                                                        stream().
-                                                        map(f -> f.split(" -> ")[0]).
-                                                        toList());
+        var set = new HashSet<String>();
+        Consumer<String[]> arrayConsumer = pair -> {
+            set.add(pair[0]);
+            set.add(pair[1]);
+        };
+
+        this.flights.stream().
+                     map(f -> f.split(" -> ")).
+                     forEach(arrayConsumer);
+        String flight = this.io.showAvailableCities(set);
 
         this.flightsLock.unlock();
 

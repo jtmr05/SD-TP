@@ -2,7 +2,7 @@ package server;
 
 class IdGen {
 
-    private static volatile long ID;
+    private static volatile long ID = 0;
 
     static long get(){
         try{

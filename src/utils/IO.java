@@ -46,6 +46,10 @@ public class IO {
         this.clear();
     }
 
+    private void space(){
+        this.print("\n\n\n");
+    }
+
     public void err(String s){
         System.err.println(s);
         this.enterKeyEvent();
@@ -117,6 +121,8 @@ public class IO {
 
     public void showFlights(Collection<String> flights){
 
+        this.space();
+
         int i = 0;
 
         for(String s : flights)
@@ -125,6 +131,8 @@ public class IO {
     }
 
     public String showAvailableCities(Collection<String> cities){
+
+        this.space();
 
         int i = 0;
 
@@ -137,6 +145,8 @@ public class IO {
     }
 
     public void showNotifs(){
+
+        this.space();
 
         int i = 0;
 
@@ -160,6 +170,8 @@ public class IO {
     }
 
     public Pair<String, String> login(){
+
+        this.clear();
 
         this.println("*** Login ***");
 
@@ -205,7 +217,7 @@ public class IO {
     }
 
     public LocalDate readDate(){
-        this.print("Date to cancel flights: ");
-        return LocalDate.parse(this.sc.nextLine(), DateTimeFormatter.ISO_DATE);
+        this.print("Date to cancel flights (YYYY-MM-DD): ");
+        return LocalDate.parse(this.sc.nextLine(), DateTimeFormatter.ISO_LOCAL_DATE);
     }
 }

@@ -88,32 +88,36 @@ class ClientHandler implements Runnable {
                                 flights.add(f);
                         }
 
-                        LocalDate curr = LocalDate.now();
-                        int offset = 0;
 
                         if(flights != null){
 
+                            LocalDate date = LocalDate.now();
+                            int offset = 0;
                             final int size = flights.size();
 
+                            System.out.println("before loop");
                             for(int i = 0; i < size; i++){
 
                                 var f = flights.get(i);
-                                curr.plusDays(offset);
+                                date.plusDays(offset);
 
-                                if(!f.bookSeat(curr)){
+                                if(!f.bookSeat(date)){
                                     for(int j = 0; j < i; j++)
-                                        flights.get(j).cancelSeat(curr);
+                                        flights.get(j).cancelSeat(date);
 
                                     offset++;
+                                    i = -1;
                                 }
                             }
+                            System.out.println("after loop");
 
-                            Reservation r = new Reservation(this.sessionId, IdGen.get(), curr);
-                            r.addFlights((Flight[]) flights.toArray());
+
+                            Reservation r = new Reservation(this.sessionId, IdGen.get(), date);
+                            r.addFlights(flights.toArray());
                             long id = this.reservationCatalog.addReservation(r);
 
                             this.tc.send(MessageType.NOTIF,
-                                "Reservation "+ id +" on day "+curr.toString());
+                                "Reservation "+ id +" on day "+date.toString());
                         }
                     }
 
@@ -155,10 +159,8 @@ class ClientHandler implements Runnable {
             }
 
             this.tc.close();
-
-
         }
-        catch (IOException e){
+        catch(IOException e){
             e.printStackTrace();
         }
     }

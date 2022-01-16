@@ -16,6 +16,8 @@ public class Server {
         FlightsCatalog fc = FlightsCatalog.getInstance();
         ReservationCatalog rc = ReservationCatalog.getInstance();
 
+        System.out.println("Listening on port " + Consts.DEFAULT_PORT);
+
 
         try{
             while(true){

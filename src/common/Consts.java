@@ -44,7 +44,7 @@ public final class Consts {
  * FLIGHTS_LIST + flight1 + '\0' + flight2 + ...         //server
  * NOTIF + message                                       //server
  *
- * MAKE, CANCEL, CLOSE, NEW + '\0' + string              //client
+ * MAKE, CANCEL, CLOSE, NEW + id + '\0' + string         //client
  *
  * QUIT + client_id                                      //client
  */

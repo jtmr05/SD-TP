@@ -22,6 +22,8 @@ class ClientSender implements Runnable {
                 this.tc.send(frame);
             }
         }
-        catch(InterruptedException | IOException e){}
+        catch(InterruptedException | IOException e){
+            e.printStackTrace();
+        }
     }
 }
