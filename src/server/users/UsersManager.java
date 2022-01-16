@@ -26,8 +26,10 @@ public class UsersManager {
 
     private UsersManager(){
         this.users = new HashMap<>();
-        User u = new User("admin", "admin", UserType.ADMIN);
-        this.users.put(u.getUsername(), u);
+        User u1 = new User("admin", "admin", UserType.ADMIN);
+        User u2 = new User("joao", "joao", UserType.REGULAR);
+        this.users.put(u1.getUsername(), u1);
+        this.users.put(u2.getUsername(), u2);
         this.lock = new ReentrantLock();
     }
 

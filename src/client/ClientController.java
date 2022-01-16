@@ -163,7 +163,7 @@ public class ClientController{
 
         String flight = this.io.showAvailableCities(this.flights.
                                                         stream().
-                                                        map(f -> f.split(" ->")[0]).
+                                                        map(f -> f.split(" -> ")[0]).
                                                         toList());
 
         this.flightsLock.unlock();
@@ -216,5 +216,13 @@ public class ClientController{
         LocalDate ld = this.io.readDate();
 
         this.wr.addToSendQueue(MessageType.CLOSE, this.clientId + "\0" + ld.toString());
+    }
+
+    public void clearNotifs(){
+        this.ioLock.lock();
+
+        this.io.clearNotifs();
+
+        this.ioLock.unlock();
     }
 }

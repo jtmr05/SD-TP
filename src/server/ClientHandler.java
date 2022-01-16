@@ -1,18 +1,16 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Random;
-import java.util.Set;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
-import common.Consts;
 import common.Frame;
 import common.TaggedConnection;
 import common.Consts.MessageType;
 
-import static common.Consts.UserType;
 import server.users.UsersManager;
 import server.users.User;
 
@@ -29,7 +27,7 @@ class ClientHandler implements Runnable {
     ClientHandler(Socket s, UsersManager users, FlightsCatalog flights, ReservationCatalog r) throws IOException {
         this.tc = new TaggedConnection(s);
         this.registeredUsers = users;
-        this.sessionId = null;
+        this.sessionId = "";
         this.flightsCatalog = flights;
         this.reservationCatalog = r;
     }
@@ -38,7 +36,6 @@ class ClientHandler implements Runnable {
     public void run(){
 
         try{
-
 
             boolean loggedIn = false;
 
@@ -65,15 +62,99 @@ class ClientHandler implements Runnable {
 
             while(loggedIn){
 
-                Frame f = this.tc.receive();
+                Frame frame = this.tc.receive();
+                String s = frame.getDataAsString();
 
-                switch(f.tag){
+                String[] args = s.split("\0");
+                if(!this.sessionId.equals(args[0]))
+                    continue;
 
-                    case
+                switch(frame.tag){
+
+                    case MAKE -> {
+
+                        String[] cities = args[1].split(" ");
+                        List<Flight> flights = new ArrayList<>();
+
+                        for(int i = 0; i < cities.length - 1; i++){
+
+                            var f = this.flightsCatalog.getFlight(cities[i], cities[i+1]);
+
+                            if(f == null){
+                                flights = null;
+                                break;
+                            }
+                            else
+                                flights.add(f);
+                        }
+
+                        LocalDate curr = LocalDate.now();
+                        int offset = 0;
+
+                        if(flights != null){
+
+                            final int size = flights.size();
+
+                            for(int i = 0; i < size; i++){
+
+                                var f = flights.get(i);
+                                curr.plusDays(offset);
+
+                                if(!f.bookSeat(curr)){
+                                    for(int j = 0; j < i; j++)
+                                        flights.get(j).cancelSeat(curr);
+
+                                    offset++;
+                                }
+                            }
+
+                            Reservation r = new Reservation(this.sessionId, IdGen.get(), curr);
+                            r.addFlights((Flight[]) flights.toArray());
+                            long id = this.reservationCatalog.addReservation(r);
+
+                            this.tc.send(MessageType.NOTIF,
+                                "Reservation "+ id +" on day "+curr.toString());
+                        }
+                    }
+
+                    case GET -> {
+                        var iter = this.flightsCatalog.allFlightsAvailable().iterator();
+
+                        StringBuilder sb = new StringBuilder();
+
+                        while(iter.hasNext()){
+                            sb.append(iter.next());
+                            if(iter.hasNext())
+                                sb.append("\0");
+                        }
+
+                        this.tc.send(MessageType.FLIGHTS_LIST, sb.toString());
+                    }
+
+                    case NEW -> {
+                        Flight f = Flight.fromString(args[1]);
+                        this.flightsCatalog.addFlight(f);
+                        this.tc.send(MessageType.NOTIF, "Flight created");
+                    }
+
+                    case CANCEL -> {
+                        this.reservationCatalog.removeReservation(Long.parseLong(args[1]));
+                        this.tc.send(MessageType.NOTIF, "Reservation "+ args[1] +" cancelled");
+                    }
+
+                    case CLOSE -> {
+                        this.reservationCatalog.cancelDay(LocalDate.parse(args[1], DateTimeFormatter.ISO_LOCAL_DATE));
+                    }
+
+                    case QUIT -> {
+                        loggedIn = false;
+                    }
+
+                    default -> {}
                 }
             }
 
-
+            this.tc.close();
 
 
         }

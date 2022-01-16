@@ -15,13 +15,16 @@ public class IO {
     private final Scanner sc;
     private Menu menu;
     private MenuHandler[] handlers;
-    private final List<String> notifs;
+    private final List<String> unread;
+    private final List<String> read;
+
 
     public IO(){
         this.sc = new Scanner(System.in);
         this.menu = null;
         this.handlers = null;
-        this.notifs = new LinkedList<>();
+        this.unread = new LinkedList<>();
+        this.read = new LinkedList<>();
     }
 
     public void println(String s){
@@ -59,14 +62,17 @@ public class IO {
                     "Make reservation",
                     "Cancel reservation",
                     "Get flights list",
-                    "Show notifications"
+                    "Show notifications",
+                    "Clear notifications"
                 };
 
+                int i = 0;
                 this.handlers = new MenuHandler[ops.length];
-                this.handlers[0] = c::makeReservation;
-                this.handlers[1] = c::cancelReservation;
-                this.handlers[2] = c::getFlightsList;
-                this.handlers[3] = c::showNotifs;
+                this.handlers[i++] = c::makeReservation;
+                this.handlers[i++] = c::cancelReservation;
+                this.handlers[i++] = c::getFlightsList;
+                this.handlers[i++] = c::showNotifs;
+                this.handlers[i++] = c::clearNotifs;
             }
 
             case ADMIN -> {
@@ -75,17 +81,20 @@ public class IO {
                     "Cancel reservation",
                     "Get flights list",
                     "Show notifications",
+                    "Clear notifications",
                     "New flight",
                     "Close day"
                 };
 
+                int i = 0;
                 this.handlers = new MenuHandler[ops.length];
-                this.handlers[0] = c::makeReservation;
-                this.handlers[1] = c::cancelReservation;
-                this.handlers[2] = c::getFlightsList;
-                this.handlers[3] = c::showNotifs;
-                this.handlers[4] = c::newFlight;
-                this.handlers[5] = c::closeDay;
+                this.handlers[i++] = c::makeReservation;
+                this.handlers[i++] = c::cancelReservation;
+                this.handlers[i++] = c::getFlightsList;
+                this.handlers[i++] = c::showNotifs;
+                this.handlers[i++] = c::clearNotifs;
+                this.handlers[i++] = c::newFlight;
+                this.handlers[i++] = c::closeDay;
             }
 
             default ->
@@ -131,9 +140,23 @@ public class IO {
 
         int i = 0;
 
-        for(String s : this.notifs)
+        final int size = this.unread.size();
+
+        for(; i < size; i++){
+            String s = this.unread.remove(0);
+            this.read.add(0, s);
+        }
+
+        i = 0;
+        for(String s : this.read)
             this.println("\t**"+(i++)+". " + s);
+
+
         this.enterKeyEvent();
+    }
+
+    public void clearNotifs(){
+        this.read.clear();
     }
 
     public Pair<String, String> login(){
@@ -150,7 +173,7 @@ public class IO {
     }
 
     public void addNotif(String s) {
-        this.notifs . add(0, s);
+        this.unread.add(0, s);
     }
 
     public void leave(){
@@ -159,10 +182,6 @@ public class IO {
 
     public boolean isMenuAvailable(){
         return this.menu != null;
-    }
-
-    public String getMenuTitle(){
-        return this.menu.getTitle();
     }
 
     public String cancel(){

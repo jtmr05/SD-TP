@@ -3,44 +3,65 @@ package server;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class Reservation {
-    private long clientID;
-    private long reservationID;
-    private LocalDate reservationDate;
+class Reservation {
+
+    private final String clientID;
+    private final long reservationID;
+    private final LocalDate reservationDate;
     private List<Flight> flights;
+    private final Lock lock;
 
-    public Reservation(long clientID, long reservationID, LocalDate reservationDate) {
+    Reservation(String clientID, long reservationID, LocalDate reservationDate) {
         this.clientID = clientID;
         this.reservationID = reservationID;
         this.reservationDate = reservationDate;
         this.flights = new ArrayList<>();
+        this.lock = new ReentrantLock();
     }
 
-    public Reservation(long clientID, long reservationID, LocalDate reservationDate, Flight f) {
-        this.clientID = clientID;
-        this.reservationID = reservationID;
-        this.flights = new ArrayList<>();
-        this.reservationDate = reservationDate;
+    Reservation(String clientID, long reservationID, LocalDate reservationDate, Flight f) {
+        this(clientID, reservationID, reservationDate);
         this.flights.add(f);
     }
 
-    public void addFlight(Flight f){
+    void addFlight(Flight f){
+        this.lock.lock();
         if (this.flights.size() == 0)
             this.flights = new ArrayList<>();
         this.flights.add(f);
+        this.lock.unlock();
     }
 
-    public long getClientID() {
-        return clientID;
+    void addFlights(Flight... fs){
+        this.lock.lock();
+        if (this.flights.size() == 0)
+            this.flights = new ArrayList<>();
+
+        for(Flight f : fs)
+            this.flights.add(f);
+
+        this.lock.unlock();
     }
 
-    public long getReservationID() {
-        return reservationID;
+    void cancel(LocalDate date){
+        this.lock.lock();
+        for(Flight f : this.flights)
+            f.cancelSeat(date);
+        this.lock.unlock();
     }
 
-    public LocalDate getReservationDate() {
-        return reservationDate;
+    String getClientID() {
+        return this.clientID;
     }
 
+    long getReservationID() {
+        return this.reservationID;
+    }
+
+    LocalDate getReservationDate() {
+        return this.reservationDate;
+    }
 }

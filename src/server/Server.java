@@ -13,12 +13,14 @@ public class Server {
 
         ServerSocket ss = new ServerSocket(Consts.DEFAULT_PORT);
         UsersManager um = UsersManager.getInstance();
+        FlightsCatalog fc = FlightsCatalog.getInstance();
+        ReservationCatalog rc = ReservationCatalog.getInstance();
 
 
         try{
             while(true){
                 Socket s = ss.accept();
-                new Thread(new ClientHandler(s, um)).start();
+                new Thread(new ClientHandler(s, um, fc, rc)).start();
             }
         }
         finally{
