@@ -95,7 +95,6 @@ class ClientHandler implements Runnable {
                             int offset = 0;
                             final int size = flights.size();
 
-                            System.out.println("before loop");
                             for(int i = 0; i < size; i++){
 
                                 var f = flights.get(i);
@@ -109,8 +108,6 @@ class ClientHandler implements Runnable {
                                     i = -1;
                                 }
                             }
-                            System.out.println("after loop");
-
 
                             Reservation r = new Reservation(this.sessionId, IdGen.get(), date);
                             r.addFlights(flights.toArray());
